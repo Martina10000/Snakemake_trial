@@ -1,0 +1,19 @@
+filtering_versions:
+  mt5:
+    params:
+      min_feat: 200
+      max_feat: 2500
+      max_mt: 5
+  mt10:
+    params:
+      min_feat: 200
+      max_feat: 2500
+      max_mt: 10
+
+variable_features: 
+  params:
+    n_features: 2100
+
+pca:
+  params: 
+      pca: 15

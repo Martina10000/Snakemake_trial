@@ -1,0 +1,80 @@
+---
+title: "Dimensionality reduction"
+output: html_document
+date: "2025-04-24"
+params:
+  input_rds: NULL
+  output_rds: NULL
+---
+
+```{r}
+#Importing libraries
+library(dplyr)
+library(Seurat)
+library(patchwork)
+```
+
+DATA SCALING
+
+We apply a linear transformation (scaling) so later we can apply dimensional reduction techniques like PCA. The ScaleData() function:
+
+  Shifts the expression of each gene, so that the mean expression across cells is 0
+  Scales the expression of each gene, so that the variance across cells is 1
+  This step gives equal weight in downstream analyses, so that highly-expressed genes do not dominate
+  The results of this are stored in pbmc[["RNA"]]$scale.data
+  By default, only variable features are scaled.
+  You can specify the features argument to scale additional features
+```{r}
+# Load input object
+pbmc <- readRDS(params$input_rds)
+all.genes <- rownames(pbmc)
+pbmc <- ScaleData(pbmc, features = all.genes)
+```
+In Seurat, we also use the ScaleData() function to remove unwanted sources of variation from a single-cell dataset. For example, we could ‘regress out’ heterogeneity associated with (for example) cell cycle stage, or mitochondrial contamination i.e.:
+
+pbmc <- ScaleData(pbmc, vars.to.regress = "percent.mt")
+
+However, particularly for advanced users who would like to use this functionality, we strongly recommend the use of our new normalization workflow, SCTransform(). The method is described in our paper, with a separate vignette using Seurat here. As with ScaleData(), the function SCTransform() also includes a vars.to.regress parameter.
+
+LINEAR DIMENSIONAL REDUCTION
+
+Now that the data is scaed we can perform de PCA. By default, only the previously determined variable features are used as input, but can be defined using features argument if you wish to choose a different subset (if you do want to use a custom subset of features, make sure you pass these to ScaleData first).
+
+For the first principal components, Seurat outputs a list of genes with the most positive and negative loadings, representing modules of genes that exhibit either correlation (or anti-correlation) across single-cells in the dataset.
+
+```{r}
+#See that the PCa is being assigned to PMc so we no longer have the subset stored in there we have the Pca of the subset. 
+pbmc <- RunPCA(pbmc, features = VariableFeatures(object = pbmc))
+```
+```{r}
+# Examine and visualize PCA results a few different ways
+print(pbmc[["pca"]], dims = 1:5, nfeatures = 5)
+```
+```{r}
+VizDimLoadings(pbmc, dims = 1:2, reduction = "pca")
+```
+
+```{r}
+DimPlot(pbmc, reduction = "pca") + NoLegend()
+```
+In particular DimHeatmap() allows for easy exploration of the primary sources of heterogeneity in a dataset, and can be useful when trying to decide which PCs to include for further downstream analyses. Both cells and features are ordered according to their PCA scores. Setting cells to a number plots the ‘extreme’ cells on both ends of the spectrum, which dramatically speeds plotting for large datasets. Though clearly a supervised analysis, we find this to be a valuable tool for exploring correlated feature sets.
+
+```{r}
+DimHeatmap(pbmc, dims = 1, cells = 500, balanced = TRUE)
+DimHeatmap(pbmc, dims = 1:15, cells = 500, balanced = TRUE)
+```
+DETERMINE THE DIEMSIONALITY OF THE DATASET: 
+
+Basically an heuristic method is used  Elbow plot. In this case there's an elbow around PC9-10 suggetsing that the majority of the true signal is captured in the first 10PCs. 
+
+```{r}
+ElbowPlot(pbmc) # Remember that pbmc already contains the PCA of the subset. 
+```
+We encourage users to repeat downstream analyses with a different number of PCs (10, 15, or even 50!). As you will observe, the results often do not differ dramatically.
+We advise users to err on the higher side when choosing this parameter. For example, performing downstream analyses with only 5 PCs does significantly and adversely affect results.
+
+
+```{r}
+saveRDS(pbmc, params$output_rds)
+```
+

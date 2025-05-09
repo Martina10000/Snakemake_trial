@@ -1,0 +1,43 @@
+
+---
+title: "High variable features"
+output: html_document
+params:
+  input_rds: NULL
+  output_rds: NULL
+  n_features: 2000
+---
+
+
+```{r}
+#Importing libraries
+library(Seurat)
+library(patchwork)
+library(dplyr)
+```
+
+IDENTIFICATION OF HIGH VARIABLE FEATURES 
+
+Ens centrerem en identificar les fatures/variables que canvien molt respecte les cèl·lules, en algunes estan molt expressats mentre que en les altres no. 
+
+Our procedure in Seurat is described in detail here, and improves on previous versions by directly modeling the mean-variance relationship inherent in single-cell data, and is implemented in the FindVariableFeatures() function. By default, we return 2,000 features per dataset. These will be used in downstream analysis, like PCA.
+
+```{r}
+# Load input object
+pbmc <- readRDS(params$input_rds)
+
+pbmc <- FindVariableFeatures(pbmc, selection.method = "vst", nfeatures = params$n_features) # Aquí marques quants gens vols 
+
+# Identify the 10 most highly variable genes, to be able to label them in the plot 
+top10 <- head(VariableFeatures(pbmc), 10)
+
+# plot variable features with and without labels
+plot1 <- VariableFeaturePlot(pbmc)
+plot2 <- LabelPoints(plot = plot1, points = top10, repel = TRUE)
+plot1 + plot2
+
+# Save updated object
+saveRDS(pbmc, params$output_rds)
+print("Step 5: Saved output RDS")
+
+```

@@ -1,0 +1,26 @@
+---
+title: "Normalization"
+output: html_document
+date: "2025-04-23"
+params:
+  input_rds: "output/filtered_pbmc.rds"
+  output_rds: "output/normalized_pbmc.rds"
+---
+
+
+
+```{r}
+library(Seurat)
+
+# Load the filtered PBMC object
+pbmc <- readRDS(params$input_rds)
+
+# Normalize the data
+pbmc <- NormalizeData(pbmc, normalization.method = "LogNormalize", scale.factor = 10000)
+
+head(pbmc)
+
+# Save the normalized object
+saveRDS(pbmc, file = params$output_rds)
+```
+

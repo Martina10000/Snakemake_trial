@@ -1,0 +1,263 @@
+---
+title: "Guide for Snakemake installation and implementation"
+author: "Martina"
+date: "2025-04-30"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+# 1. Snakemake
+
+Snakemake follows the GNU Make paradigm: workflows are defined in terms of rules that define how to create output files from input files. Dependencies between the rules are determined automatically, creating a DAG (directed acyclic graph) of jobs that can be automatically parallelized.
+
+reference: https://snakemake.readthedocs.io/en/stable/tutorial/tutorial.html
+
+
+# 2. Snakemake Installation (in personal computer): 
+
+## 2.1. Python Installation:
+
+For snakemake installation Python is required to be installed. If that's not the case visit this website for downloading it: https://www.python.org/downloads/windows/
+During Python installation mark add python to the path option. 
+
+## 2.2. Snakemake Installation:
+
+Once python is installed snakemake can be installed by running the following line in your personal computer terminal: 
+
+```{bash eval=FALSE}
+pip install snakemake[reports]
+```
+
+
+Since we're going to Use R markdown we need both R and Rstudio installed and also Pandoc for reading the Rmarkdown. Make sure that both R and R studio are added to the path. If you want to check if that's the case run the following command in your terminal: 
+
+```{bash eval=FALSE}
+Rscript --version
+```
+
+## 2.3. Pandoc Installation: 
+
+For Pandoc installation follow the following link, download the installer and execute it: https://pandoc.org/installing.html
+
+## 2.4. Graphviz installation:
+
+Finally in case we want to generate the DAGs (Directed Acyclic Graph) we will also need to install Graphviz: https://graphviz.org/download/. Make sure to add the Graphviz to the path during the installation. 
+
+Once all the programs have been correctly installed we can proceed with the setup for Snakemake to work. 
+
+# 3. Snakemake setup:
+
+## 3.1. Folder Structure
+
+In one main folder where we will be working, we will create 3 folders: 
+
+- Input (where we will store the input data)
+- Output (where the output files will be saved)
+
+
+This main folder is the localization where we have to be to run all the snakemake commands. This main folder will contain the Snakefile and teh configfile. 
+
+
+## 3.2. Config file writing and structure: 
+
+For creating a config file we can just create a txt file and later transformed it to yaml. for doing that we just open a txt file and saved it as config.txt then using this command we can saved as yaml which is the format that snakemake reads. 
+
+```{bash eval=FALSE}
+Rename-Item "config.txt" "config.yaml"
+```
+
+The interior of the config file need to contain all the parameters that you want to be able to edit when implementing the pipeline. Here we have an example on how it can look like:  
+
+```{python eval=FALSE}
+filtering_versions:
+  mt5:
+    min_features: 200
+    max_features: 2500
+    max_percent_mt: 5
+  mt10:
+    min_features: 200
+    max_features: 2500
+    max_percent_mt: 10
+
+
+n_features: 2000
+
+pca: 15
+```
+
+In this case in the first script we want two versions to be runned one with mt5 and the other with mt10 so for that the 
+
+## 3.3. Snakefile writing and structure:
+
+The Snakefile is the core of the Snakemake workflow. It defines each step of the pipeline using rules, which describe how to transform input files into output files. Each rule typically includes:
+
+-input: the files or parameters required
+
+-output: the files that will be generated
+
+-params: additional parameters (like numbers from a config file)
+
+-shell: the actual command that gets run
+
+### 3.3.1. Example Structure: Multiple Versions via Config File
+
+In the config example we're running the pipeline for two versions: mt5 and mt10, which are defined in the config.yaml. This lets you dynamically generate outputs based on different parameter values.
+
+Here’s how the Snakefile is structured:
+
+CONFIGFILE
+```{python eval=FALSE}
+
+configfile: "config.yaml"
+```
+
+RULE ALL: 
+
+This is the default rule, which means Snakemake will aim to produce these outputs by default. It uses expand() to iterate over all versions (mt5, mt10) and create the appropriate file paths.
+```{python eval=FALSE}
+rule all:
+    input:
+        expand("output/{version}/clustering.html", version=config["filtering_versions"].keys()),
+        expand("output/{version}/clustering.rds", version=config["filtering_versions"].keys())
+```
+
+A RULE EXEMAPLE: 
+
+wildcards.version allows Snakemake to plug in mt5 or mt10 automatically (or whatever name you specified for he versions in the config_file)
+
+The params field dynamically builds the parameter string passed to the R Markdown file. This parameter string is obtained thanks to items() that takes all the parameters specified in the config file under that version. That way each version is processed with its corresponding parameters from config.yaml.
+
+```{python eval=FALSE}
+rule filtering_QC:
+    input:
+        rmd="1-Filtering_QC.Rmd",
+        data_dir="input/filtered_gene_bc_matrices/hg19"
+    output:
+        html="output/{version}/filter_qc.html",
+        rds="output/{version}/filtered_pbmc.rds"
+    params:
+        filtering_params = lambda wildcards: ", ".join(f"{k}={v}" for k, v in config["filtering_versions"][wildcards.version].items())
+    shell:
+        """
+        Rscript -e "rmarkdown::render('{input.rmd}', output_file='{output.html}', params=list(data_dir='{input.data_dir}', output_rds='{output.rds}', {params.filtering_params}))"
+        """
+
+```
+
+
+OTHER RULES: 
+
+More rules can be added and will follow the same structure as the previous rule. 
+
+
+
+### Key Concepts Illustrated:
+
+-Modularity: Each rule performs a clear step.
+
+-Reproducibility: Parameters are tracked in config.yaml.
+
+-Scalability: Adding a new version (e.g., mt15) just requires updating config.yaml.
+
+-Reusability: Each rule uses R Markdown, allowing transparent data reporting and analysis.
+
+
+
+
+## 3.4. R markdown Adaptation for Snakemake: 
+
+For a R markdown to run using snakefile we need to select first what parameters we want to fix in the script and which ones we want to be editable via the config file. This parameters along with the inputs localization and outputs need to be specified in the beginning looking like this: 
+
+```{r eval=FALSE}
+
+title: "Filtering and QC"
+output: html_document
+date: "2025-04-23"
+params:
+  data_dir: "input/"
+  output_rds: "output/filtered_pbmc.rds"
+  min_feat: 200
+  max_feat: 2500
+  max_mt: 5
+
+
+```
+
+Then after that we need to edit/write the R markdown so instead of using directly numbers for the parameters it's using the names specified for instance min_feat. 
+
+Note: when we initialize the parameters, min_feat for example, we set a default number 200 in this case, but if the config file contains a different number set that number will be used. 
+
+# 4. Snakefile Usage: 
+
+A Snakefile is characterized by a set of rule that are executed depending on the command used. There's a master rule, called rule all, this rule specifies what is the default inc are nothing else is specified when the command snakemake is runned, you also need to specify the numer of cores you will be assigning to the task. 
+
+```{bash eval=FALSE}
+snakemake --cores 1
+```
+
+If this command is runned only the rules needed to achieve the outputs stated in the rule all rule will be executed, But if you want to only runa a certain specific rule you can either do the command specifying the rule or a command specifying the output that you want. 
+
+```{bash eval=FALSE}
+snakemake filtering_QC --cores 1
+```
+
+```{bash eval=FALSE}
+snakemake output/filtered_pbmc.rds --cores 1
+```
+
+
+# 5. Other useful things:
+
+## 5.1. How to build a DAG: 
+
+The complete DAG:
+```{bash eval=FALSE}
+snakemake --dag | dot -Tpdf -o dag.pdf
+```
+
+The partial DAG (there's the possibility to have only the representation to a certain file object) 
+
+```{bash eval=FALSE}
+snakemake write/your/output/file --dag | dot -Tpdf -o dag_parcial.pdf
+```
+
+## 5.2. To change file names
+
+```{bash eval=FALSE}
+Rename-Item "config.yaml.txt" "config.yaml"
+```
+
+## 5.3. How to configure git:
+
+For having all the scripts,snakefile and config file saved and tracked git can be used. For that make sure that you create a gitignore file called: .gitignore that specifies what to ignore from the snakefile folder like input or output data. It can look something like this: 
+
+```{python eval=FALSE}
+# Ignore input and output data
+input/
+output/
+
+# Ignore Snakemake's working directory
+.snakemake/
+
+# Ignore logs (if you have a logs/ folder)
+logs/
+
+# Ignore DAG files (optional)
+*.dag
+*.dot
+*.png
+```
+
+Once the gitignore file is created you can link your main folder with the sankefile to your git project. 
+
+### 5.4. Conatiner Usage: 
+
+You can use containers by either specifying different containers for each rule or in the case you want to use the same conatiner for all the rules you can specify it at the top of the snakefile: 
+
+```{python eval=FALSE}
+# Set a global container for all rules
+container: "rocker/r-ver:4.0.5"  # Example: A Docker image with R
+```
+
+
