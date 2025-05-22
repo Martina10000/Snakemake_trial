@@ -1,0 +1,14 @@
+# Ignore input and output data
+input/
+output/
+
+# Ignore Snakemake's working directory
+.snakemake/
+
+# Ignore logs (if you have a logs/ folder)
+logs/
+
+# Ignore DAG files (optional)
+*.dag
+*.dot
+*.png

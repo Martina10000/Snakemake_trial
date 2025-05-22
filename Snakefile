@@ -6,7 +6,7 @@ configfile: "config.yaml"
 
 rule all:
     input:
-        expand("output/{version}/clustering.html", version=config["filtering_versions"].keys()),
+        expand("output/{version}/5-Clustering.html", version=config["filtering_versions"].keys()),
         expand("output/{version}/clustering.rds", version=config["filtering_versions"].keys())
 
 rule filtering_QC:
@@ -14,7 +14,7 @@ rule filtering_QC:
         rmd="1-Filtering_QC.Rmd",
         data_dir="input/filtered_gene_bc_matrices/hg19"
     output:
-        html="output/{version}/filter_qc.html",
+        html="output/{version}/1-Filter_qc.html",
         rds="output/{version}/filtered_pbmc.rds"
     params:
         filtering_params = lambda wildcards: ", ".join(f"{k}={v}" for k, v in config["filtering_versions"][wildcards.version]["params"].items())
@@ -28,7 +28,7 @@ rule normalize:
         rmd="2-Normalization.Rmd",
         rds="output/{version}/filtered_pbmc.rds"
     output:
-        html="output/{version}/normalize.html",
+        html="output/{version}/2-Normalize.html",
         rds="output/{version}/normalized_pbmc.rds"
     shell:
         """
@@ -40,7 +40,7 @@ rule variable_features:
         rmd="3-HVF.Rmd",
         rds="output/{version}/normalized_pbmc.rds"
     output:
-        html="output/{version}/variable_features.html",
+        html="output/{version}/3-Variable_features.html",
         rds="output/{version}/variable_features.rds"
     params:
         features_params = lambda wildcards: ", ".join(f"{k}={v}" for k, v in config["variable_features"]["params"].items())
@@ -54,7 +54,7 @@ rule dim_reduction:
         rmd="4-Dimensionality reduction.Rmd",
         rds="output/{version}/variable_features.rds"
     output:
-        html="output/{version}/dim_reduction.html",
+        html="output/{version}/4-Dim_reduction.html",
         rds="output/{version}/dim_reduction.rds"
     shell:
         """
@@ -66,7 +66,7 @@ rule clustering:
         rmd="5-Clustering.Rmd",
         rds="output/{version}/dim_reduction.rds"
     output:
-        html="output/{version}/clustering.html",
+        html="output/{version}/5-Clustering.html",
         rds="output/{version}/clustering.rds"
     params:
         pca_params = lambda wildcards: ", ".join(f"{k}={v}" for k, v in config["pca"]["params"].items())
@@ -74,3 +74,11 @@ rule clustering:
         """
         Rscript -e "rmarkdown::render('{input.rmd}', output_file='{output.html}', params=list(input_rds='{input.rds}', output_rds='{output.rds}', {params.pca_params}))"
         """
+
+rule merge_htmls:
+    input:
+        htmls=lambda wildcards: list(Path("output").rglob("*.html"))
+    output:
+        "output/index.html"
+    shell:
+        "python merge_htmls.py"

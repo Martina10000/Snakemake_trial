@@ -16,7 +16,7 @@ library(patchwork)
 library(dplyr)
 ```
 
-IDENTIFICATION OF HIGH VARIABLE FEATURES 
+# IDENTIFICATION OF HIGH VARIABLE FEATURES 
 
 Ens centrerem en identificar les fatures/variables que canvien molt respecte les cèl·lules, en algunes estan molt expressats mentre que en les altres no. 
 
@@ -41,3 +41,7 @@ saveRDS(pbmc, params$output_rds)
 print("Step 5: Saved output RDS")
 
 ```
+
+## Prova segon titol 
+
+## Prova tercer titol 
