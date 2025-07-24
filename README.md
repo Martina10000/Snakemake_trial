@@ -15,8 +15,3 @@ If you have any doubts I can be conatcted at msangeniscrusi@gmail.com
 ## Authors and acknowledgment
 The scripts are taken from the Seurat tutorial (https://satijalab.org/seurat/articles/pbmc3k_tutorial.html) the only original work is the implementation into a snakmake pipeline. 
 
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-It's still ongoing
