@@ -13,5 +13,5 @@ This project serves as an example and is complemented with the guide. So you can
 If you have any doubts I can be conatcted at msangeniscrusi@gmail.com
 
 ## Authors and acknowledgment
-The scripts are taken from the Seurat tutorial (https://satijalab.org/seurat/articles/pbmc3k_tutorial.html) the only original work is the implementation into a snakmake pipeline. 
+The scripts are taken from the Seurat tutorial (https://satijalab.org/seurat/articles/pbmc3k_tutorial.html) the only original work is the implementation into a snakmake pipeline and the merge script for compiling all the resulting reprots (htmls) into one index.  
 
