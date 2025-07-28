@@ -4,7 +4,33 @@
 Example of Snakemake usage for a Rmarkdown workflow 
 
 ## Description
-This is an example of a working Snakefile for a Rmarkdown workflow. It also contains a guide explaining how to install snakemake and use it in this context. 
+This is an example of a working Snakefile for a Rmarkdown workflow. It also contains a guide explaining how to install snakemake and use it in this context. The contents of this main page are: 
+
+- R Markdown Scripts contiang the code for the analyses
+- Snakefile: file with all the rules that relate the previous scripts
+- Config.yaml:file where the parameters of the scripts can be changed
+- DAG: Directed Acyclic Graph of the current pipeline configuration
+- merge_htmls_python script for merging the resulting reports
+- README
+- gitignore
+- Folders described in the following section
+
+## Folder Structure 
+
+The folder structure resilting of this project is the following, but sicne their content (reports anr R obkects take a lot of space are not uploaded into this git), only the guides are uploaded. 
+
+input/
+
+└── filtered_gene_bc_matrices/hg19/ # Folder containing raw data files (not tracked)
+
+guide/
+
+├── Snakemake guide
+
+output/
+├── mt5/ # Reports and rds files using the mt5 filter (this is an example, not tracked)
+
+└── mt10/ # Reports and rds files using the mt10 filter (this is an example, not tracked))
 
 ## Usage
 This project serves as an example and is complemented with the guide. So you can either use the guide to setup your own pipeline using RMarkdown and snakefile or you can download the example pipeline and edit it for your needs. 
