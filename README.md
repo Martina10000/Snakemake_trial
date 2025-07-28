@@ -62,5 +62,5 @@ Table: R Packages and Their Versions
 If you have any doubts I can be conatcted at msangeniscrusi@gmail.com
 
 ## Authors and acknowledgment
-The scripts are taken from the Seurat tutorial (https://satijalab.org/seurat/articles/pbmc3k_tutorial.html) the only original work is the implementation into a snakmake pipeline and the merge script for compiling all the resulting reprots (htmls) into one index.  
+The scripts are taken from the Seurat tutorial (https://satijalab.org/seurat/articles/pbmc3k_tutorial.html) the only original work is the implementation into a snakmake pipeline and the merge script for compiling all the resulting reports (htmls) into one index.  
 
